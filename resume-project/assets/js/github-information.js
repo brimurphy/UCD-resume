@@ -2,7 +2,7 @@
 function userInformationHTML(user) {
   return `
     <h2>${user.name}
-    <span class="small-name>
+    <span class="small-name">
     (@<a href="${user.html_url}" target="_blank">${user.login}</a>)
     </span>
     </h2>
@@ -38,7 +38,7 @@ function repoInformationHTML(repos) {
 
 function fetchGitHubInformation(e) {
     $('#gh-user-data').html('');
-    $('gh-repo-data').html('');
+    $('#gh-repo-data').html('');
   //If username box is empty display this msg
   let username = $("#gh-username").val();
   if (!username) {
@@ -61,9 +61,13 @@ function fetchGitHubInformation(e) {
       $("#gh-repo-data").html(repoInformationHTML(repoData));
     },
     function (errorResponse) {
-      if (errorResponse === 404) {
+      if (errorResponse.status === 404) {
         $("#gh-user-data").html(`<h2>No info found for user ${username}</h2>`);
-      } else {
+      } else if (errorResponse.status === 403) {
+            let resetTime = new Date(errorResponse.getResponseHeader('X-RateLimit-Reset')*1000);
+            $("#gh-user-data").html(`<h4>Too many requests, please wait untiil ${resetTime.toLocaleTimeString()}</h4>`)
+      }
+      else {
         console.log(errorResponse);
         $("#gh-user-data").html(
           `<h2>Error: ${errorResponse.responseJSON.message}</h2>`
@@ -72,5 +76,5 @@ function fetchGitHubInformation(e) {
     }
   );
 }
-
+// displays octocat profile as a default
 $(document).ready(fetchGitHubInformation);
